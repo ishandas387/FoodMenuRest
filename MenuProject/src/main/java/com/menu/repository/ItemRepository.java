@@ -9,5 +9,6 @@ import com.menu.entity.Item;
 public interface ItemRepository extends CrudRepository<Item, Long> {
 	
 	public List<Item> findByName(String itemName);
+	public List<Item> findByMenuId(Long menuId);
 
 }

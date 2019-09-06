@@ -116,6 +116,9 @@ public class MenuServiceImpl implements MenuService {
 		return listOfItemsDTO;
 	}
 
+	/**
+	 * saving the menu and respective items for it.
+	 */
 	@Override
 	@Transactional
 	public ResponseDTO saveMenu(AddMenuDTO menu) throws MenuProjectException, EntityAlreadyExistsException {
@@ -130,6 +133,12 @@ public class MenuServiceImpl implements MenuService {
 			menuEntity.setMenuDescription(menu.getMenuDescription());
 			menuEntity.setMenuName(menu.getMenuName());
 			menuEntity.setActive(Boolean.TRUE);
+			if(!StringUtils.isEmpty(menu.getParentMenu())) {
+				List<Menu> findByMenuName = menuRepo.findByMenuName(menu.getParentMenu());
+				if(!findByMenuName.isEmpty()) {
+					menuEntity.setSubMenu(String.valueOf(findByMenuName.get(0).getMenuId()));
+				}
+			}
 			if (!CollectionUtils.isEmpty(menu.getListOfItems())) {
 				List<Item> items = menu.getListOfItems().stream().map(item -> itemService.convertToDO(item))
 						.collect(Collectors.toList());

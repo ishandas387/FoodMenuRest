@@ -1,6 +1,8 @@
 package com.menu.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -11,6 +13,9 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import com.menu.dto.AddItemDTO;
+import com.menu.dto.ItemDTO;
+import com.menu.dto.ItemGroupResponseDTO;
+import com.menu.dto.StatusCode;
 import com.menu.entity.Item;
 import com.menu.entity.Menu;
 import com.menu.exception.EntityAlreadyExistsException;
@@ -75,6 +80,40 @@ public class ItemServiceImpl implements ItemService {
 	
 		List<Item> items = listOfDTOs.stream().map(itemDto -> convertToDO(itemDto)).collect(Collectors.toList());
 		return ((List<Item>) itemRepo.saveAll(items)).size();
+	}
+
+	@Override
+	public ItemGroupResponseDTO getItemDetailsByGroup(String groupByRank, String menu) throws EntityNotFoundException {
+		ItemGroupResponseDTO resp = new ItemGroupResponseDTO();
+		resp.setStatus(StatusCode.FAILURE);
+		if(StringUtils.isEmpty(menu)) {
+			return resp;
+		}else {
+			//get the menu id
+			List<Menu> findByMenuName = menuRepo.findByMenuName(menu);
+			if(CollectionUtils.isEmpty(findByMenuName)) {
+				throw new EntityNotFoundException("Menu does not exists!");
+			}
+			List<Item> listOfItems = itemRepo.findByMenuId(findByMenuName.get(0).getMenuId());
+			if(!CollectionUtils.isEmpty(listOfItems)) {
+				Map<String, List<Item>> groupedMap =new HashMap<>();
+				if("N".equalsIgnoreCase(groupByRank)) {
+					resp.setGroupedBy("PRICE");
+					groupedMap = listOfItems.stream().collect(Collectors.groupingBy(w -> w.getPrice()));
+				}else {
+					resp.setGroupedBy("RATING");
+					groupedMap = listOfItems.stream().collect(Collectors.groupingBy(w -> String.valueOf(w.getRating())));
+				}
+				//type conversion
+				Map<String, List<ItemDTO>> itemdtoMap = new HashMap<>();
+				groupedMap.forEach((k,v)->{
+					
+				});
+					resp.setItemdtoMap(itemdtoMap);
+					
+			}
+		}
+		return resp;
 	}
 
 	

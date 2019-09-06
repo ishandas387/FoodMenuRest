@@ -9,11 +9,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.menu.dto.AddItemDTO;
+import com.menu.dto.ItemGroupResponseDTO;
 import com.menu.entity.Item;
 import com.menu.exception.EntityAlreadyExistsException;
 import com.menu.exception.EntityNotFoundException;
@@ -53,10 +55,11 @@ public class ItemController {
 	/**
 	 * Getting all items with sub menus and items.
 	 * @return
+	 * @throws EntityNotFoundException 
 	 */
-	@GetMapping
-	public List<Item> getMenu(){
-		return itemService.getItems();
+	@GetMapping("/group")
+	public ItemGroupResponseDTO groupBy(@RequestHeader(name="groupby-rank",defaultValue = "N") String groupByRank, @RequestHeader("menu") String menu) throws EntityNotFoundException{
+		return itemService.getItemDetailsByGroup(groupByRank, menu);
 	}
 
  
