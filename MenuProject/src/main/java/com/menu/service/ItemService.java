@@ -14,5 +14,7 @@ public interface ItemService {
 	public Item saveItem(AddItemDTO menu) throws MenuProjectException, EntityAlreadyExistsException, EntityNotFoundException;
 	public List<Item> getItems();
 	public int saveListOfItems(List<AddItemDTO> listOfDTOs);
-	public ItemGroupResponseDTO getItemDetailsByGroup(String groupByRank, String menu) throws EntityNotFoundException;
+	public ItemGroupResponseDTO getItemDetailsByGroup(String groupByRank, String menu) throws EntityNotFoundException, MenuProjectException;
+	public Double getPriceOfAllItems(String menu) throws EntityNotFoundException;
+	public int getActiveSubMenuCount(String menu) throws EntityNotFoundException;
 }

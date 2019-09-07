@@ -1,7 +1,5 @@
 package com.menu.controller;
 
-import java.util.List;
-
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,13 +52,23 @@ public class ItemController {
 	}
 	/**
 	 * Getting all items with sub menus and items.
+	 * Flag groupby-rank header if set to Y the results are grouped by rating
 	 * @return
 	 * @throws EntityNotFoundException 
+	 * @throws MenuProjectException 
 	 */
 	@GetMapping("/group")
-	public ItemGroupResponseDTO groupBy(@RequestHeader(name="groupby-rank",defaultValue = "N") String groupByRank, @RequestHeader("menu") String menu) throws EntityNotFoundException{
+	public ItemGroupResponseDTO groupBy(@RequestHeader(name="groupby-rank",defaultValue = "N") String groupByRank, @RequestHeader("menu") String menu) throws EntityNotFoundException, MenuProjectException{
 		return itemService.getItemDetailsByGroup(groupByRank, menu);
 	}
 
- 
+	@GetMapping("/allprice")
+	public Double getPriceOfAllItems(@RequestHeader("menu") String menu) throws EntityNotFoundException, MenuProjectException{
+		return itemService.getPriceOfAllItems( menu);
+	}
+
+	@GetMapping("/active-submenu")
+	public int getNumberOfActiveSubMenu(@RequestHeader("menu") String menu) throws EntityNotFoundException, MenuProjectException{
+		return itemService.getActiveSubMenuCount( menu);
+	}
 }

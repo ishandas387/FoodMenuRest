@@ -126,7 +126,7 @@ public class MenuServiceImpl implements MenuService {
 			Long timeStart = System.currentTimeMillis();
 			ResponseDTO resp = new ResponseDTO();
 			resp.setStatus(StatusCode.FAILURE);
-			if (!CollectionUtils.isEmpty(menuRepo.findByMenuName(menu.getMenuName()))) {
+			if (!CollectionUtils.isEmpty(menuRepo.findByMenuNameIgnoreCaseAndIsActive(menu.getMenuName(),Boolean.TRUE))) {
 				throw new EntityAlreadyExistsException("Menu Name already in use");
 			}
 			Menu menuEntity = new Menu();
@@ -134,7 +134,7 @@ public class MenuServiceImpl implements MenuService {
 			menuEntity.setMenuName(menu.getMenuName());
 			menuEntity.setActive(Boolean.TRUE);
 			if(!StringUtils.isEmpty(menu.getParentMenu())) {
-				List<Menu> findByMenuName = menuRepo.findByMenuName(menu.getParentMenu());
+				List<Menu> findByMenuName = menuRepo.findByMenuNameIgnoreCaseAndIsActive(menu.getParentMenu(),Boolean.TRUE);
 				if(!findByMenuName.isEmpty()) {
 					menuEntity.setSubMenu(String.valueOf(findByMenuName.get(0).getMenuId()));
 				}

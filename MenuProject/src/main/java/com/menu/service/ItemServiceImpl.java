@@ -1,8 +1,13 @@
 package com.menu.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -45,7 +50,7 @@ public class ItemServiceImpl implements ItemService {
 				throw new EntityAlreadyExistsException("Item already exists");
 			}
 			if (!StringUtils.isEmpty(item.getParentMenu())) {
-				if (null == menuRepo.findByMenuName(item.getParentMenu())) {
+				if (null == menuRepo.findByMenuNameIgnoreCaseAndIsActive(item.getParentMenu(), Boolean.TRUE)) {
 					throw new EntityNotFoundException("Parent menu not found");
 				}
 			}
@@ -63,7 +68,7 @@ public class ItemServiceImpl implements ItemService {
 		itm.setPrice(item.getItemPriceWithCurrency());
 		itm.setName(item.getItemName());
 		if (!StringUtils.isEmpty(item.getParentMenu())) {
-			List<Menu> findByMenuName = menuRepo.findByMenuName(item.getParentMenu());
+			List<Menu> findByMenuName = menuRepo.findByMenuNameIgnoreCaseAndIsActive(item.getParentMenu(), Boolean.TRUE);
 			itm.setParentMenu(findByMenuName.get(0));
 		}
 		return itm;
@@ -77,44 +82,113 @@ public class ItemServiceImpl implements ItemService {
 
 	@Override
 	public int saveListOfItems(List<AddItemDTO> listOfDTOs) {
-	
+
 		List<Item> items = listOfDTOs.stream().map(itemDto -> convertToDO(itemDto)).collect(Collectors.toList());
 		return ((List<Item>) itemRepo.saveAll(items)).size();
 	}
 
 	@Override
-	public ItemGroupResponseDTO getItemDetailsByGroup(String groupByRank, String menu) throws EntityNotFoundException {
+	public ItemGroupResponseDTO getItemDetailsByGroup(String groupByRank, String menu)
+			throws EntityNotFoundException, MenuProjectException {
 		ItemGroupResponseDTO resp = new ItemGroupResponseDTO();
-		resp.setStatus(StatusCode.FAILURE);
-		if(StringUtils.isEmpty(menu)) {
+		resp.setStatus(StatusCode.SUCESS);
+
+		if (StringUtils.isEmpty(menu)) {
 			return resp;
-		}else {
-			//get the menu id
-			List<Menu> findByMenuName = menuRepo.findByMenuName(menu);
-			if(CollectionUtils.isEmpty(findByMenuName)) {
-				throw new EntityNotFoundException("Menu does not exists!");
-			}
-			List<Item> listOfItems = itemRepo.findByMenuId(findByMenuName.get(0).getMenuId());
-			if(!CollectionUtils.isEmpty(listOfItems)) {
-				Map<String, List<Item>> groupedMap =new HashMap<>();
-				if("N".equalsIgnoreCase(groupByRank)) {
-					resp.setGroupedBy("PRICE");
-					groupedMap = listOfItems.stream().collect(Collectors.groupingBy(w -> w.getPrice()));
-				}else {
-					resp.setGroupedBy("RATING");
-					groupedMap = listOfItems.stream().collect(Collectors.groupingBy(w -> String.valueOf(w.getRating())));
-				}
-				//type conversion
-				Map<String, List<ItemDTO>> itemdtoMap = new HashMap<>();
-				groupedMap.forEach((k,v)->{
-					
-				});
+		} else {
+			try {
+				List<Item> listOfItems = getListOfItemsForAMenuIncludingSubs(menu);
+
+				if (!CollectionUtils.isEmpty(listOfItems)) {
+					Map<String, List<Item>> groupedMap = new HashMap<>();
+					if ("N".equalsIgnoreCase(groupByRank)) {
+						resp.setGroupedBy("PRICE");
+						groupedMap = listOfItems.stream().collect(Collectors.groupingBy(w -> w.getPrice()));
+					} else {
+						resp.setGroupedBy("RATING");
+						groupedMap = listOfItems.stream()
+								.collect(Collectors.groupingBy(w -> String.valueOf(w.getRating())));
+					}
+					// type conversion
+					Map<String, List<ItemDTO>> itemdtoMap = new HashMap<>();
+					groupedMap.forEach((k, v) -> {
+						itemdtoMap.put(k, convertToDTO(v));
+					});
 					resp.setItemdtoMap(itemdtoMap);
-					
+
+				}
+			} catch (Exception e) {
+				LOG.info("Exception in group by items :: {}", e.getMessage());
+				throw new MenuProjectException(e.getMessage());
 			}
+
 		}
 		return resp;
 	}
 
-	
+	private List<Item> getListOfItemsForAMenuIncludingSubs(String menu) throws EntityNotFoundException {
+		List<Menu> findByMenuName = getTheMenu(menu);
+		/**
+		 * If this is a parent menu, get all the items of parent menu and sub menu as
+		 * well and then group it
+		 */
+		// check if it is a parent menu
+		Menu menu2 = findByMenuName.get(0);
+		Set<Long> menuIds = new HashSet<>();
+		if (StringUtils.isEmpty(menu2.getSubMenuOf())) {
+			// get all the submenus
+			menuIds = menuRepo.getMenuIdBySubMenuAndFlag(String.valueOf(menu2.getMenuId()), Boolean.TRUE);
+		}
+
+		// include the parent
+		menuIds.add(menu2.getMenuId());
+
+		List<Item> listOfItems = itemRepo.getItemListBasedOnMenu(menuIds);
+		return listOfItems;
+	}
+
+	private List<Menu> getTheMenu(String menu) throws EntityNotFoundException {
+		// get the menu id
+		List<Menu> findByMenuName = menuRepo.findByMenuNameIgnoreCaseAndIsActive(menu, Boolean.TRUE);
+		if (CollectionUtils.isEmpty(findByMenuName)) {
+			throw new EntityNotFoundException("Menu does not exists!");
+		}
+		return findByMenuName;
+	}
+
+	/**
+	 * Given a list of items it gives back a list of item dto(s).
+	 * 
+	 * @param itemList
+	 * @return
+	 */
+	private List<ItemDTO> convertToDTO(List<Item> itemList) {
+		List<ItemDTO> itemDTOList = new ArrayList<>();
+		itemList.forEach(item -> {
+			ItemDTO dto = new ItemDTO();
+			dto.setName(item.getName());
+			dto.setPrice(item.getPrice());
+			dto.setRating(String.valueOf(item.getRating()));
+			dto.setDescription(item.getDescription());
+			itemDTOList.add(dto);
+		});
+		return itemDTOList;
+
+	}
+
+	@Override
+	public Double getPriceOfAllItems(String menu) throws EntityNotFoundException {
+		List<Item> listOfItems = getListOfItemsForAMenuIncludingSubs(menu);
+		return listOfItems.stream().map(Item::getPrice).map(price -> {
+			String[] split = price.split("-");
+			return split[0];
+		}).mapToDouble(x -> Double.valueOf(x)).sum();
+	}
+
+	@Override
+	public int getActiveSubMenuCount(String menu) throws EntityNotFoundException {
+		List<Menu> findByMenuName = getTheMenu(menu);
+		return menuRepo.getMenuIdBySubMenuAndFlag(String.valueOf(findByMenuName.get(0).getMenuId()), Boolean.TRUE).size();
+	}
+
 }
