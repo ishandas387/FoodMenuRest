@@ -46,8 +46,3 @@ http://localhost:8080/foodmenu/swagger-ui.htm
 - Can be encapsulated with a DTO - which will have count and List<String>
 
 
-
-
-8. The menu data that you hand in, should be a mock. There is no need to obtain that
-kind of information from a database. Put the mocks in the appropriate place.
-12. Unit testing. Add some examples to showcase the usage of unit tests in the project.

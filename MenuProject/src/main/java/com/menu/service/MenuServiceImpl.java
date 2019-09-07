@@ -150,9 +150,18 @@ public class MenuServiceImpl implements MenuService {
 			}
 			LOG.info("Time to complete save call {}",System.currentTimeMillis() -timeStart);
 			return resp;
-		} catch (Exception e) {
+		}catch(EntityAlreadyExistsException e) {
+			throw e;
+			
+		}
+		catch (Exception e) {
 			throw new MenuProjectException(e.getLocalizedMessage());
 		}
+	}
+
+	@Override
+	public void deleteMenu(Long menuId) {
+		 menuRepo.deleteById(menuId);
 	}
 
 }

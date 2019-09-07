@@ -6,8 +6,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -45,7 +43,7 @@ public class ItemServiceImpl implements ItemService {
 	public Item saveItem(AddItemDTO item)
 			throws MenuProjectException, EntityAlreadyExistsException, EntityNotFoundException {
 		try {
-
+			Long startTime = System.currentTimeMillis();
 			if (!CollectionUtils.isEmpty(itemRepo.findByName(item.getItemName()))) {
 				throw new EntityAlreadyExistsException("Item already exists");
 			}
@@ -55,7 +53,12 @@ public class ItemServiceImpl implements ItemService {
 				}
 			}
 			Item itemDO = convertToDO(item);
+			LOG.info("Time taken to complete the operation :: {}", System.currentTimeMillis() - startTime);
 			return itemRepo.save(itemDO);
+		} catch (EntityAlreadyExistsException e) {
+			throw e;
+		} catch (EntityNotFoundException e) {
+			throw e;
 		} catch (Exception e) {
 			LOG.error("Error while saving " + e.getMessage());
 			throw new MenuProjectException(e.getLocalizedMessage());
@@ -63,14 +66,17 @@ public class ItemServiceImpl implements ItemService {
 	}
 
 	public Item convertToDO(AddItemDTO item) {
+		Long startTime = System.currentTimeMillis();
 		Item itm = new Item();
 		itm.setDescription(item.getItemDescription());
 		itm.setPrice(item.getItemPriceWithCurrency());
 		itm.setName(item.getItemName());
 		if (!StringUtils.isEmpty(item.getParentMenu())) {
-			List<Menu> findByMenuName = menuRepo.findByMenuNameIgnoreCaseAndIsActive(item.getParentMenu(), Boolean.TRUE);
+			List<Menu> findByMenuName = menuRepo.findByMenuNameIgnoreCaseAndIsActive(item.getParentMenu(),
+					Boolean.TRUE);
 			itm.setParentMenu(findByMenuName.get(0));
 		}
+		LOG.info("Time taken to complete the conversion in milsecs :: {}", System.currentTimeMillis() - startTime);
 		return itm;
 
 	}
@@ -90,6 +96,7 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	public ItemGroupResponseDTO getItemDetailsByGroup(String groupByRank, String menu)
 			throws EntityNotFoundException, MenuProjectException {
+		Long startTime = System.currentTimeMillis();
 		ItemGroupResponseDTO resp = new ItemGroupResponseDTO();
 		resp.setStatus(StatusCode.SUCESS);
 
@@ -115,8 +122,9 @@ public class ItemServiceImpl implements ItemService {
 						itemdtoMap.put(k, convertToDTO(v));
 					});
 					resp.setItemdtoMap(itemdtoMap);
-
+					LOG.info("Time taken to complete the grouping :: {}", System.currentTimeMillis() - startTime);
 				}
+
 			} catch (Exception e) {
 				LOG.info("Exception in group by items :: {}", e.getMessage());
 				throw new MenuProjectException(e.getMessage());
@@ -176,6 +184,9 @@ public class ItemServiceImpl implements ItemService {
 
 	}
 
+	/**
+	 * Get price of all items for a menu including sub-menu
+	 */
 	@Override
 	public Double getPriceOfAllItems(String menu) throws EntityNotFoundException {
 		List<Item> listOfItems = getListOfItemsForAMenuIncludingSubs(menu);
@@ -185,10 +196,14 @@ public class ItemServiceImpl implements ItemService {
 		}).mapToDouble(x -> Double.valueOf(x)).sum();
 	}
 
+	/**
+	 * Get Active submenu for a menu.
+	 */
 	@Override
 	public int getActiveSubMenuCount(String menu) throws EntityNotFoundException {
 		List<Menu> findByMenuName = getTheMenu(menu);
-		return menuRepo.getMenuIdBySubMenuAndFlag(String.valueOf(findByMenuName.get(0).getMenuId()), Boolean.TRUE).size();
+		return menuRepo.getMenuIdBySubMenuAndFlag(String.valueOf(findByMenuName.get(0).getMenuId()), Boolean.TRUE)
+				.size();
 	}
 
 }

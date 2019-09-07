@@ -12,4 +12,5 @@ public interface MenuService {
 
 	public ResponseDTO saveMenu(AddMenuDTO menu) throws MenuProjectException, EntityAlreadyExistsException;
 	public List<MenuDTO> getMenu();
+	public void deleteMenu(Long menuId);
 }
