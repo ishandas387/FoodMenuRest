@@ -48,7 +48,7 @@ public class ItemServiceImpl implements ItemService {
 				throw new EntityAlreadyExistsException("Item already exists");
 			}
 			if (!StringUtils.isEmpty(item.getParentMenu())) {
-				if (null == menuRepo.findByMenuNameIgnoreCaseAndIsActive(item.getParentMenu(), Boolean.TRUE)) {
+				if (CollectionUtils.isEmpty(menuRepo.findByMenuNameIgnoreCaseAndIsActive(item.getParentMenu(), Boolean.TRUE))) {
 					throw new EntityNotFoundException("Parent menu not found");
 				}
 			}

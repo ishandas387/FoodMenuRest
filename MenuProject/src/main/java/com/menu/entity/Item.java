@@ -22,6 +22,7 @@ public class Item {
 	@Column(nullable = false)
 	@NotNull(message = "Rating can not be null!")
 	private Integer rating = 0;
+	String avaiableDays;
 	private String startSchedule;
 	private String endSchedule;
 	private String startDate;
@@ -110,5 +111,13 @@ public class Item {
 	public void setEndDate(String endDate) {
 		this.endDate = endDate;
 	}
+	public String getAvaiableDays() {
+		return avaiableDays;
+	}
+
+	public void setAvaiableDays(String avaiableDays) {
+		this.avaiableDays = avaiableDays;
+	}
+
 
 }

@@ -48,7 +48,7 @@ public class MenuServiceImpl implements MenuService {
 		List<Menu> listOfMenu = (List<Menu>) menuRepo.findByIsActive(Boolean.TRUE);
 		List<MenuDTO> listMenuDTO = new ArrayList<>();
 		//get the primary menu items.
-		List<Menu> primaryMenu = listOfMenu.stream().filter(m -> m.getSubMenu() == null || m.getSubMenu().isEmpty())
+		List<Menu> primaryMenu = listOfMenu.stream().filter(m -> m.getSubMenuOf() == null || m.getSubMenuOf().isEmpty())
 				.collect(Collectors.toList());
 		//create dto for primary
 		listMenuDTO.addAll(getListOfSubMenuDTO(primaryMenu));
@@ -60,13 +60,13 @@ public class MenuServiceImpl implements MenuService {
 		 */
 		Map<String, List<Menu>> mapOfSubMenu = new HashMap<>();
 		for (Menu m : listOfMenu) {
-			if (!StringUtils.isEmpty(m.getSubMenu())) {
-				if (!mapOfSubMenu.containsKey(m.getSubMenu())) {
+			if (!StringUtils.isEmpty(m.getSubMenuOf())) {
+				if (!mapOfSubMenu.containsKey(m.getSubMenuOf())) {
 					List<Menu> subMenus = new ArrayList<Menu>();
 					subMenus.add(m);
-					mapOfSubMenu.put(m.getSubMenu(), subMenus);
+					mapOfSubMenu.put(m.getSubMenuOf(), subMenus);
 				} else {
-					mapOfSubMenu.get(m.getSubMenu()).add(m);
+					mapOfSubMenu.get(m.getSubMenuOf()).add(m);
 				}
 			}
 		}
@@ -136,7 +136,7 @@ public class MenuServiceImpl implements MenuService {
 			if(!StringUtils.isEmpty(menu.getParentMenu())) {
 				List<Menu> findByMenuName = menuRepo.findByMenuNameIgnoreCaseAndIsActive(menu.getParentMenu(),Boolean.TRUE);
 				if(!findByMenuName.isEmpty()) {
-					menuEntity.setSubMenu(String.valueOf(findByMenuName.get(0).getMenuId()));
+					menuEntity.setSubMenuOf(String.valueOf(findByMenuName.get(0).getMenuId()));
 				}
 			}
 			if (!CollectionUtils.isEmpty(menu.getListOfItems())) {

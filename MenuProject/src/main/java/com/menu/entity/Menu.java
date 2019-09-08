@@ -30,12 +30,6 @@ public class Menu {
 	@OneToMany(cascade = CascadeType.ALL,mappedBy = "parentMenu")
     private List<Item> listOfItems;
     
-	public String getSubMenuOf() {
-		return subMenuOf;
-	}
-	public void setSubMenuOf(String subMenuOf) {
-		this.subMenuOf = subMenuOf;
-	}
 	public List<Item> getListOfItems() {
 		return listOfItems;
 	}
@@ -60,10 +54,10 @@ public class Menu {
 	public void setMenuName(String menuName) {
 		this.menuName = menuName;
 	}
-	public String getSubMenu() {
+	public String getSubMenuOf() {
 		return subMenuOf;
 	}
-	public void setSubMenu(String subMenu) {
+	public void setSubMenuOf(String subMenu) {
 		this.subMenuOf = subMenu;
 	}
 }

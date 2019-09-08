@@ -13,6 +13,8 @@ MENU -> SUB MENU -> ITEMS
 -MANY TO ONE relationship from ITEM to MENU
 -owning side MENU
 - ITEM assumption- photo is just a url from s3 or file location in server and hence a string column. Although it is not added as part of entity.
+--The dates and schedules are deliberately left as string since there are no major functionality associated with it right now.
+-In case of front end - it can send the start and end date time stamp which can be converted and broken into respective date and time for respective column insertions.
 
 #SWAGGER
 http://localhost:8080/foodmenu/swagger-ui.htm
@@ -24,6 +26,10 @@ http://localhost:8080/foodmenu/swagger-ui.htm
 -group by item price/rating
 -get price of all item
 -get active sub menu
+
+#Testcase
+- Test case of itemService has been written with Mockito.
+
 
 
 #11. Validate if input data is correct for #3 and #4. Consider the fact that the input payload
