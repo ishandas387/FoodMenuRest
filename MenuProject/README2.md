@@ -15,6 +15,7 @@ MENU -> SUB MENU -> ITEMS
 - ITEM assumption- photo is just a url from s3 or file location in server and hence a string column. Although it is not added as part of entity.
 --The dates and schedules are deliberately left as string since there are no major functionality associated with it right now.
 -In case of front end - it can send the start and end date time stamp which can be converted and broken into respective date and time for respective column insertions.
+-OR on a separate note, it can be entered as plain english text from the front end as well, if data format consistency is not an strict requirement.
 
 #SWAGGER
 http://localhost:8080/foodmenu/swagger-ui.htm

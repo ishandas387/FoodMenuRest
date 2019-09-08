@@ -93,6 +93,7 @@ public class MenuServiceImpl implements MenuService {
 			m.setDescription(menu.getMenuDescription());
 			m.setItems(getItems(menu.getListOfItems()));
 			m.setId(menu.getMenuId());
+			m.setActive(menu.isActive());
 			list2.add(m);
 		});
 		return list2;

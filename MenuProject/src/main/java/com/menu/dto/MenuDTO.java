@@ -6,6 +6,7 @@ public class MenuDTO {
 	
 	private Long id;
 	private String name;
+	private boolean isActive;
 	private String description;
 	List<MenuDTO> subMenu;
 	List<ItemDTO> items;
@@ -21,6 +22,12 @@ public class MenuDTO {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public boolean isActive() {
+		return isActive;
+	}
+	public void setActive(boolean isActive) {
+		this.isActive = isActive;
 	}
 	public String getDescription() {
 		return description;
